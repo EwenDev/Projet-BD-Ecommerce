@@ -9,6 +9,10 @@ NOTE(idNote,score,#idUtilisateur, #idArticle)
 COMMENTAIRE(idCom, titre, description, date, #idUtilisateur, #idArticle, #idCom, #idNote)
 ARTICLE_PANIER(idArticleP, quantité, #idPanier, #idArticle)
 
+CÔTÉ EMPLOYES :
+
+EMPLOYE(idEmp, nom, prenom, email, num_tel, genre, poste, #idAdresse)
+
 CÔTÉ ARTICLE :
 
 VENDEUR(idVendeur, nom, adresse, pays, ville, num_tel, slug)
@@ -24,9 +28,8 @@ PROMOTION(idPromo, nom, pourcentage, valeur, code, type)
 
 CÔTE ACHAT :
 
-LIVREUR(idLivreur, nom, prenom, email, num_tel, genre)
-ARTICLE_LIVRAISON(idArticleLivraison, prix, quantité, #idLivraison, #idArticleCommande)
-LIVRAISON(idLivraison, date, temps, #idAdresse, #idLivreur)
+ARTICLE_LIVRAISON(idArticleLivraison, prix, quantité, #idLivraison, #idArticleCommande, #idEmp)
+LIVRAISON(idLivraison, date, temps, statut, #idAdresse, #idEmp)
 ARTICLE_COMMANDE(idArticleCommande, prix, quantité, #idCommande, #idArticle)
 COMMANDE(idCommande, date, #idUtilisateur)
 FACTURE(idFacture, date, moyenPaiement, #idUtilisateur)
@@ -83,7 +86,7 @@ CREATE TABLE VENDEUR(
 );
 
 CREATE TABLE LIVREUR(
-    idLivreur INT PRIMARY KEY,
+    idEmp INT PRIMARY KEY,
     prenom VARCHAR(30) NOT NULL,
     nom VARCHAR(30) NOT NULL,
     email VARCHAR(50) UNIQUE NOT NULL CHECK (email LIKE '%_@%_.__%'), --Vérifie que l'email est bien de la forme "___@___.___"
@@ -204,7 +207,8 @@ CREATE TABLE LIVRAISON(
     idLivraison INT PRIMARY KEY,
     datelivraison date NOT NULL,
     temps INT NOT NULL,
-    idLivreur INT REFERENCES LIVREUR(idLivreur),
+    statut VARCHAR(50) NOT NULL,
+    idEmp INT REFERENCES LIVREUR(idEmp),
     idAdresse INT REFERENCES ADRESSE(idAdresse)
 );
 
@@ -214,6 +218,7 @@ CREATE TABLE ARTICLE_LIVRAISON(
     quantité INT NOT NULL,
     idLivraison INT REFERENCES LIVRAISON(idLivraison),
     idArticleCommande INT REFERENCES ARTICLE_COMMANDE(idArticleCommande)
+    idEmp INT REFERENCES LIVREUR(idEmp)
 );
 
 CREATE TABLE FACTURE(
