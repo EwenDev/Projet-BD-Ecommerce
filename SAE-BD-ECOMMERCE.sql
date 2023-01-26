@@ -8,6 +8,7 @@ UT_POSSEDE_ADRESSE(#idUtilisateur, #idAdresse)
 NOTE(idNote,score,#idUtilisateur, #idArticle)
 COMMENTAIRE(idCom, titre, description, date, #idUtilisateur, #idArticle, #idCom, #idNote)
 ARTICLE_PANIER(idArticleP, quantité, #idPanier, #idArticle)
+SOUHAIT(#idUtilisateur, #idArticle)
 
 CÔTÉ EMPLOYES :
 
@@ -43,6 +44,7 @@ DROP TABLE NOTE CASCADE CONSTRAINTS;
 DROP TABLE COMMENTAIRE CASCADE CONSTRAINTS;
 DROP TABLE PANIER CASCADE CONSTRAINTS;
 DROP TABLE ARTICLE_PANIER CASCADE CONSTRAINTS;
+DROP TABLE SOUHAIT CASCADE CONSTRAINTS;
 DROP TABLE VENDEUR CASCADE CONSTRAINTS;
 DROP TABLE VENTE CASCADE CONSTRAINTS;
 DROP TABLE ARTICLE CASCADE CONSTRAINTS;
@@ -53,7 +55,7 @@ DROP TABLE CATEGORIE_SOUSCAT CASCADE CONSTRAINTS;
 DROP TABLE CATEGORIE CASCADE CONSTRAINTS;
 DROP TABLE IMAGE CASCADE CONSTRAINTS;
 DROP TABLE PROMOTION CASCADE CONSTRAINTS;
-DROP TABLE LIVREUR CASCADE CONSTRAINTS;
+DROP TABLE EMPLOYE CASCADE CONSTRAINTS;
 DROP TABLE ARTICLE_LIVRAISON CASCADE CONSTRAINTS;
 DROP TABLE LIVRAISON CASCADE CONSTRAINTS;
 DROP TABLE ARTICLE_COMMANDE CASCADE CONSTRAINTS;
@@ -85,15 +87,6 @@ CREATE TABLE VENDEUR(
     slug VARCHAR(50) NOT NULL
 );
 
-CREATE TABLE LIVREUR(
-    idEmp INT PRIMARY KEY,
-    prenom VARCHAR(30) NOT NULL,
-    nom VARCHAR(30) NOT NULL,
-    email VARCHAR(50) UNIQUE NOT NULL CHECK (email LIKE '%_@%_.__%'), --Vérifie que l'email est bien de la forme "___@___.___"
-    genre VARCHAR(10) NOT NULL,
-    num_tel VARCHAR(10) NOT NULL
-);
-
 CREATE TABLE ADRESSE(
     idAdresse INT PRIMARY KEY,
     numéro VARCHAR(20) NOT NULL,
@@ -102,6 +95,17 @@ CREATE TABLE ADRESSE(
     région VARCHAR(50) NOT NULL,
     pays VARCHAR(50) NOT NULL,
     info_comp VARCHAR(200)
+);
+
+CREATE TABLE EMPLOYE(
+    idEmp INT PRIMARY KEY,
+    nom VARCHAR(50) NOT NULL,
+    prenom VARCHAR(50) NOT NULL,
+    email VARCHAR(50) UNIQUE NOT NULL CHECK (email LIKE '%_@%_.__%'), --Vérifie que l'email est bien de la forme "___@___.___"
+    num_tel VARCHAR(20) NOT NULL,
+    genre VARCHAR(10) NOT NULL,
+    poste VARCHAR(50) NOT NULL,
+    idAdresse INT REFERENCES ADRESSE(idAdresse)
 );
 
 CREATE TABLE CATEGORIE(
@@ -117,6 +121,11 @@ CREATE TABLE ARTICLE(
     stock INT NOT NULL,
     idVendeur INT REFERENCES VENDEUR(idVendeur),
     idCategorie INT REFERENCES CATEGORIE(idCategorie)
+);
+
+CREATE TABLE SOUHAIT(
+    idUtilisateur INT REFERENCES UTILISATEUR(idUtilisateur),
+    idArticle INT REFERENCES ARTICLE(idArticle)
 );
 
 CREATE TABLE UT_POSSEDE_ADRESSE(
@@ -208,7 +217,7 @@ CREATE TABLE LIVRAISON(
     datelivraison date NOT NULL,
     temps INT NOT NULL,
     statut VARCHAR(50) NOT NULL,
-    idEmp INT REFERENCES LIVREUR(idEmp),
+    idEmp INT REFERENCES EMPLOYE(idEmp),
     idAdresse INT REFERENCES ADRESSE(idAdresse)
 );
 
@@ -217,8 +226,8 @@ CREATE TABLE ARTICLE_LIVRAISON(
     prix INT NOT NULL,
     quantité INT NOT NULL,
     idLivraison INT REFERENCES LIVRAISON(idLivraison),
-    idArticleCommande INT REFERENCES ARTICLE_COMMANDE(idArticleCommande)
-    idEmp INT REFERENCES LIVREUR(idEmp)
+    idArticleCommande INT REFERENCES ARTICLE_COMMANDE(idArticleCommande),
+    idEmp INT REFERENCES EMPLOYE(idEmp)
 );
 
 CREATE TABLE FACTURE(
@@ -235,3 +244,38 @@ CREATE TABLE ARTICLE_FACTURE(
     idFacture INT REFERENCES FACTURE(idFacture),
     idArticleCommande INT REFERENCES ARTICLE_COMMANDE(idArticleCommande)
 );
+
+CREATE USER visiteur IDENTIFIED BY azerty;
+CREATE ROLE CLIENT;
+CREATE ROLE VENDEUR;
+CREATE ROLE LIVREUR
+CREATE ROLE EMPLOYE;
+
+
+"""
+-visiteur (regarder les articles, lire les commentaires et notes)
+-utilisateur (poster, modifier et supprimer,  regarder/modifier profil, consulter/modifier/créer/supprimer un panier, consulter et créer une commande, consulter, créer et supprimer une adresse, créer et supprimer un souhait)
+-vendeur (mettre en vente des articles, les modifier, les supprimer, créer promotion, ajouter, modifier, supprimer des images)
+- livreur (peuvent regarder les livraisons à effectuer, et modifier le statut des livraisons)
+-employé (supprimer des articles et des commentaires et des notes, créer des livraison, accéder aux factures)
+"""
+
+--DROITS VENDEUR
+
+CREATE VIEW ARTICLE_VENDEUR AS (SELECT * FROM ARTICLE WHERE idVendeur = VENDEUR)
+GRANT INSERT,SELECT,DELETE,UPDATE ON ARTICLE_VENDEUR TO VENDEUR;
+
+CREATE VIEW PROMO_ARTICLE_VENDEUR AS (SELECT * FROM PROMO_APPLIQUE_ARTICLE WHERE idArticle IN ARTICLE_VENDEUR)
+GRANT INSERT,SELECT,DELETE,UPDATE ON PROMO_ARTICLE_VENDEUR TO VENDEUR;
+
+CREATE VIEW IMAGE_ARTICLE_VENDEUR AS (SELECT * FROM IMAGE WHERE idArticle IN ARTICLE_VENDEUR)
+GRANT INSERT,SELECT,DELETE,UPDATE ON IMAGE_ARTICLE_VENDEUR TO VENDEUR;
+
+--DROITS EMPLOYÉ
+
+GRANT DELETE,UPDATE,SELECT ON ARTICLE TO EMPLOYE;
+GRANT DELETE,SELECT ON COMMENTAIRE TO EMPLOYE;
+GRANT DELETE,SELECT ON NOTE TO EMPLOYE;
+
+
+
