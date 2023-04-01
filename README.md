@@ -5,14 +5,13 @@
 
 ## À propos
 
-Ce projet avait pour but la création d'une base de donnée d'un site de ecommerce contenant la création des tables, l'insertion de données et la mise en place de droits et de vues, accompagnée d'un MCD ainsi qu'un travail sur les données numériques et leur importance.
+Ce projet avait pour but la création d'une base de donnée d'un site de ecommerce contenant la création des tables, l'insertion de données et la mise en place de droits et de vues, accompagnée d'un MCD.
 
 ## Contenu
 
 ### Le répertoire contient :
 - Le fichier SQL (réalisé sous Oracle SQL Developper).
 - Le MCD (model conceptuel de données) de la base de données.
-- Un compte rendu portant sur les données numériques.
 
 ### Le fichier SQL contient :
 - Création et suppression des tables
